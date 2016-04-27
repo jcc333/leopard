@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_5" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -13,12 +13,23 @@
     <orderEntry type="library" name="scala-sdk-2.11.0" level="application" />
     <orderEntry type="library" name="Maven: org.scala-lang:scala-parser-combinators:2.11.0-M4" level="project" />
     <orderEntry type="library" name="Maven: org.scala-lang:scala-library:2.7.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.specs:specs:1.2.5" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.scalatest:scalatest:0.9.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.scalacheck:scalacheck:1.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jmock:jmock:2.4.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:1.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-library:1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-lang:scala-library:2.10.6" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.4" level="project" />
+    <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.5" level="project" />
+    <orderEntry type="library" name="Maven: org.scalacheck:scalacheck_2.10:1.13.1" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-sbt:test-interface:1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-tools.testing:specs_2.9.0-1:1.6.8" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-lang:scala-compiler:2.9.0-1" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-lang:jline:2.9.0-1" level="project" />
+    <orderEntry type="library" name="Maven: org.fusesource.jansi:jansi:1.4" level="project" />
+    <orderEntry type="library" name="Maven: org.scalatest:scalatest_2.10:3.0.0-M16-SNAP4" level="project" />
+    <orderEntry type="library" name="Maven: org.scalactic:scalactic_2.10:3.0.0-M16-SNAP4" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-lang:scala-reflect:2.10.5" level="project" />
   </component>
 </module>
