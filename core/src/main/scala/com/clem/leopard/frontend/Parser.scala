@@ -1,8 +1,8 @@
-package clem.frontend
+package com.clem.leopard.frontend
 
-import scala.clem.frontend.AST
-import scala.clem.frontend.AST.Values.Exp
-import scala.clem.frontend.AST.{Types, Values}
+import com.clem.leopard.frontend.AST
+import com.clem.leopard.frontend.AST.Values.Exp
+import com.clem.leopard.frontend.AST.{Types, Values}
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 import scala.util.parsing.input.CharSequenceReader
 

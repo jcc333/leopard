@@ -1,12 +1,7 @@
-package scala.clem.frontend
+package com.clem.leopard.frontend
 
 import org.apache.commons.lang.StringEscapeUtils
-
-import scala.clem.frontend.AST.Types.Type
-import scala.clem.frontend.AST._
-import scala.util.parsing.combinator.RegexParsers
-import scala.util.parsing.combinator._
-import scala.util.parsing.input.CharSequenceReader
+import com.clem.leopard.frontend.AST.Types.Type
 
 
 object AST
@@ -43,17 +38,13 @@ object AST
 
     sealed trait LVal extends Exp
 
-    trait LiteralExp[T] extends Exp {
-      def value: T
-    }
-
     type Program = Exp
 
     type Predicate = Exp
     type Body = Exp
 
-    case class IntExp(value: Int) extends LiteralExp[Int]
-    case class StringExp(value: String) extends LiteralExp[String]
+    case class IntExp(value: Int) extends Exp
+    case class StringExp(value: String) extends Exp
     case class CallExp(fn: Symbol, args: Seq[Exp]) extends Exp
     case class RecordExp(recType: Symbol, args: Seq[(Symbol, Exp)]) extends Exp with LVal
     case object Break extends Exp

@@ -1,153 +1,97 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
-  <groupId>clem</groupId>
+  <groupId>com.clem.leopard</groupId>
   <artifactId>leopard</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>war</packaging>
+  <packaging>pom</packaging>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>${project.artifactId}</name>
+  <description>Tiger Compiler</description>
+  <inceptionYear>2016</inceptionYear>
+  <url>http://github.com/jcc333/leopard/</url>
 
   <properties>
-    <database.name>starter-app</database.name>
-    <scala.version>2.10.6</scala.version>
+    <scala.version>2.11</scala.version>
+    <scalaLibrary.version>2.11.6</scalaLibrary.version>
   </properties>
+
+  <!--repositories>
+    <repository>
+      <id>leopard-release-internal</id>
+      <name>maven.leopard.com-releases</name>
+      <url>https://maven.leopard.com/artifactory/libs-release-private</url>
+    </repository>
+  </repositories-->
+
+  <modules>
+    <module>core</module>
+    <module>main</module>
+    <module>test</module>
+  </modules>
 
   <dependencies>
 
     <dependency>
       <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.4</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.5</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.scalacheck</groupId>
-      <artifactId>scalacheck_2.10</artifactId>
-      <version>1.13.1</version>
-    </dependency>
-
-
-    <dependency>
-      <groupId>org.scala-tools.testing</groupId>
-      <artifactId>specs_2.9.0-1</artifactId>
-      <version>1.6.8</version>
+      <artifactId>scala-compiler</artifactId>
+      <version>${scalaLibrary.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.scala-lang</groupId>
-      <artifactId>jline</artifactId>
-      <version>2.9.0-1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_2.10</artifactId>
-      <version>3.0.0-M16-SNAP4</version>
+      <artifactId>scala-library</artifactId>
+      <version>${scalaLibrary.version}</version>
     </dependency>
 
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>net.alchim31.maven</groupId>
+          <artifactId>scala-maven-plugin</artifactId>
+          <version>3.2.2</version>
+          <executions>
+            <execution>
+              <id>scala-first</id>
+              <phase>process-resources</phase>
+              <goals>
+                <goal>add-source</goal>
+                <goal>compile</goal>
+              </goals>
+              <configuration>
+                <recompileMode>incremental</recompileMode>
+                <args>
+                  <arg>-unchecked</arg>
+                  <arg>-deprecation</arg>
+                  <arg>-dependencyfile</arg>
+                  <arg>${project.build.directory}/.scala_dependencies</arg>
+                </args>
+                <jvmArgs>
+                  <jvmArg>-Xmx2G</jvmArg>
+                </jvmArgs>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
 
-    <resources>
-      <!-- add directories that contain resources here -->
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
+      </plugins>
+    </pluginManagement>
 
     <plugins>
-
       <plugin>
-        <!-- this plugin will build a war -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
-        <executions>
-          <execution>
-            <id>prepare-war</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>exploded</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- disable surefire -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.7</version>
-        <configuration>
-          <skipTests>true</skipTests>
-        </configuration>
-      </plugin>
-
-      <!-- enable scalatest -->
-      <plugin>
-        <groupId>org.scalatest</groupId>
-        <artifactId>scalatest-maven-plugin</artifactId>
-        <version>1.0</version>
-        <configuration>
-          <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-          <junitxml>.</junitxml>
-          <filereports>WDF TestSuite.txt</filereports>
-        </configuration>
-        <executions>
-          <execution>
-            <id>test</id>
-            <goals>
-              <goal>test</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <!-- does the actual building of scala files -->
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-
-          <execution>
-            <id>compile-scala</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <phase>compile</phase>
-          </execution>
-
-          <execution>
-            <id>test-compile-scala</id>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-            <phase>test-compile</phase>
-          </execution>
-        </executions>
-
+      </plugin>
+      <plugin>
+        <groupId>org.scalastyle</groupId>
+        <artifactId>scalastyle-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
         <configuration>
-          <recompileMode>incremental</recompileMode>
+          <goals>package</goals>
         </configuration>
-
       </plugin>
     </plugins>
   </build>
