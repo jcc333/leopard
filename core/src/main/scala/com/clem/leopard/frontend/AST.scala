@@ -6,12 +6,10 @@ import com.clem.leopard.frontend.AST.Types.Type
 
 object AST
 {
-  type Symbol = String
-
   object Values {
     sealed trait Exp extends Showable {
 
-      def showFieldVal(fieldVal: (AST.Symbol, Exp)): String = fieldVal match {
+      def showFieldVal(fieldVal: (String, Exp)): String = fieldVal match {
         case (sym, exp) => s"$sym = ${exp.show}"
       }
 
@@ -45,21 +43,22 @@ object AST
 
     case class IntExp(value: Int) extends Exp
     case class StringExp(value: String) extends Exp
-    case class CallExp(fn: Symbol, args: Seq[Exp]) extends Exp
-    case class RecordExp(recType: Symbol, args: Seq[(Symbol, Exp)]) extends Exp with LVal
     case object Break extends Exp
     case object Null extends Exp
+    case class CallExp(fn: String, args: Seq[Exp]) extends Exp
     case class SeqExp(exps: Seq[Exp]) extends Exp
+    case class RecordExp(recType: String, args: Seq[(String, Exp)]) extends Exp with LVal
     case class AssignExp(lval: LVal, rval: Exp) extends Exp
     case class IfExp(predicate: Exp, consequent: Exp, alternate: Option[Exp]) extends Exp
     case class WhileExp(prediate: Exp, body: Exp) extends Exp
-    case class ForExp(id: Symbol, init: Exp, term: Exp, body: Exp) extends Exp
+    case class ForExp(id: String, init: Exp, term: Exp, body: Exp) extends Exp
     case class LetExp(decs: Seq[LetDec], body: Seq[Exp]) extends Exp
-    case class ArrayExp(typ: Symbol, n: Exp, init: Exp) extends Exp
+    case class ArrayExp(typ: String, n: Exp, init: Exp) extends Exp
 
-    case class SimpleVar(name: Symbol) extends LVal
-    case class FieldVar(lval: LVal, field: Symbol) extends LVal
+    case class SimpleVar(name: String) extends LVal
+    case class FieldVar(lval: LVal, field: String) extends LVal
     case class SubscriptVar(lval: LVal, subscript: Exp) extends LVal
+
 
     sealed trait LetDec {
       def show: String = this match {
@@ -71,9 +70,9 @@ object AST
       }
     }
 
-    case class VarLetDec(name: Symbol, typ: Option[Types.Type], value: Exp) extends LetDec
-    case class FunDec(name: Symbol, args: Seq[(Symbol, Types.Type)], returnType: Option[Types.Type], body: Exp) extends LetDec
-    case class TypeDec(name: Symbol, value: Types.Type) extends LetDec
+    case class VarLetDec(name: String, typ: Option[Types.Type], value: Exp) extends LetDec
+    case class FunDec(name: String, args: Seq[(String, Types.Type)], returnType: Option[Types.Type], body: Exp) extends LetDec
+    case class TypeDec(name: String, value: Types.Type) extends LetDec
 
   }
 
@@ -87,13 +86,13 @@ object AST
       }
     }
 
-    case class NameType(name: Symbol) extends Type
+    case class NameType(name: String) extends Type
     case class ArrayType(values: Type) extends Type
-    case class RecordType(fields: Seq[(Symbol, Type)]) extends Type
+    case class RecordType(fields: Seq[(String, Type)]) extends Type
     case class FunctionType(args: Seq[Type], returns: Type) extends Type
   }
 
-  def showFieldSpec(fieldSpec: (AST.Symbol, Type)): String = fieldSpec match {
+  def showFieldSpec(fieldSpec: (String, Type)): String = fieldSpec match {
     case (sym, ty) => s"$sym : ${ty.show}"
   }
 

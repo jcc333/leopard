@@ -1,8 +1,7 @@
 package com.clem.leopard.frontend
 
-import com.clem.leopard.frontend.AST
-import com.clem.leopard.frontend.AST.Values.Exp
 import com.clem.leopard.frontend.AST.{Types, Values}
+import scala.annotation.tailrec
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 import scala.util.parsing.input.CharSequenceReader
 
@@ -39,33 +38,48 @@ object TigerParser extends RegexParsers with ImplicitConversions {
   import Values._
   import Types._
 
-  override val skipWhitespace = true
-  override val whiteSpace = WHITE_SPACE
+  //override val skipWhitespace = true
+  //override val whiteSpace = WHITE_SPACE
 
   def id: Parser[String] = ID ^? (
     { case s if !reserved.contains(s) => s },
     { case s => s"RESERVED: $s" }
     )
 
-  def lval: Parser[LVal] = simpleVar | fieldVar | subscriptVar | recordExp
+  def variableExp: Parser[LVal] = {
+    sealed trait LValFragment
+    case class Dot(sym: String, nxt: Option[LValFragment]) extends LValFragment
+    case class Brackets(inside: Exp, nxt: Option[LValFragment]) extends LValFragment
 
-  def simpleVar: Parser[SimpleVar] = id.map(SimpleVar)
+    case class Ref(head: String, tail: Option[LValFragment]) {
+      def exp: LVal = expandLvalFragmentTail(SimpleVar(head), tail)
 
-  def subscriptVar: Parser[SubscriptVar] =
-    for {
-      lv <- lval
-      xp <- "[" ~> expr <~ "]"
-    } yield {
-      SubscriptVar(lv, xp)
+      @tailrec
+      final def expandLvalFragmentTail(head: LVal, tail: Option[LValFragment]): LVal = {
+        if (tail.isEmpty) head
+        else tail.get match {
+          case Dot(s, t) => expandLvalFragmentTail(FieldVar(head, s), t)
+          case Brackets(e, t) => expandLvalFragmentTail(SubscriptVar(head, e), t)
+        }
+      }
     }
 
-  def fieldVar: Parser[FieldVar] =
-    for {
-      lv <- lval
-      sym <- "." ~> id
-    } yield {
-      FieldVar(lv, sym)
+    def fragment: Parser[LValFragment] = dot | brackets
+
+    def dot: Parser[LValFragment] = "." ~> id ~ fragment.? ^^ {
+      case id ~ ref => Dot(id, ref)
     }
+
+    def brackets: Parser[LValFragment] = "[" ~> expr ~ "]" ~ fragment.? ^^ {
+      case expr ~ "]" ~ refOpt => Brackets(expr, refOpt)
+    }
+
+    def ref: Parser[Ref] = id ~ fragment.? ^^ {
+      case id ~ fragmentOpt => Ref(id, fragmentOpt)
+    }
+
+    ref.map(_.exp)
+}
 
   def parenExp: Parser[Exp] = "(" ~> expr <~ ")"
 
@@ -91,7 +105,7 @@ object TigerParser extends RegexParsers with ImplicitConversions {
       ForExp(id, init, term, body)
   }
 
-  def fieldDec: Parser[(AST.Symbol, Type)] = id ~ ":" ~ ty ^^ {
+  def fieldDec: Parser[(String, Type)] = id ~ ":" ~ ty ^^ {
     case id ~ ":" ~ ty => (id, ty)
   }
 
@@ -134,34 +148,42 @@ object TigerParser extends RegexParsers with ImplicitConversions {
     binApp | negate | notApp
   }
 
-  def assignExp: Parser[Exp] = lval ~ ":=" ~ expr ^^ {
+  def assignExp: Parser[Exp] = variableExp ~ ":=" ~ expr ^^ {
     case l ~ ":=" ~ v => AssignExp(l, v)
   }
 
   def arrayExp: Parser[Exp] =  id ~ "[" ~ expr ~ "]" ~ "of" ~ expr ^^ {
-    case id ~ "[" ~ n ~ "]" ~ "of" ~ init if n.isInstanceOf[IntExp] || n.isInstanceOf[LVal] => ArrayExp(id, n, init)
+    case id ~ "[" ~ n ~ "]" ~ "of" ~ init => ArrayExp(id, n, init)
   }
 
   def recordExp: Parser[LVal] = {
-    def fieldCreate: Parser[(AST.Symbol, Exp)] = id ~ "=" ~ expr ^^ {
+    def fieldCreate: Parser[(String, Exp)] = id ~ "=" ~ expr ^^ {
       case id ~ "=" ~ expr => (id, expr)
     }
     id ~ "{" ~ repsep(fieldCreate, ",") <~ "}" ^^ {
       case id ~ "{" ~ fields => RecordExp(id, fields)
     }
   }
+  
+  def lval: Parser[LVal] = recordExp | variableExp
+
+  def callExp: Parser[Exp] = id ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
+    case fn ~ "(" ~ args ~ ")" => CallExp(fn, args)
+  }
+
+  /*
+  def expr: Parser[Exp] = letExp | opExp
+    */
 
   def expr: Parser[Exp] =
-    lval | int | str | parenExp | letExp |
-      seqExp | breakExp | ifExp |
-      whileExp | forExp | letExp |
-      opExp | arrayExp | recordExp |
-      assignExp
+    assignExp | callExp | int | str |
+      breakExp | arrayExp | seqExp | lval | ifExp |
+      whileExp | forExp | parenExp
 
   def parseString(s: String): Option[Exp] = {
     val input = new CharSequenceReader(s)
-    TigerParser.expr(input) match {
-      case TigerParser.Success(t,_) => Some(t)
+    TigerParser.parseAll(expr, input) match {
+      case TigerParser.Success(h, _) => Some(h)
       case _ => None
     }
   }
