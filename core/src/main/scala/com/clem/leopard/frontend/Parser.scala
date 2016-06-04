@@ -138,14 +138,50 @@ object TigerParser extends RegexParsers with ImplicitConversions {
   }
 
   def opExp: Parser[Exp] = {
-    def op = "*" | "/" | "+" | "-" | "=" | "!=" | ">" | "<" | ">=" | "<=" | "&" | "|"
-    def binApp = expr ~ op ~ expr ^^ {
-      case l ~ o ~ r => CallExp(o, Seq(l, r))
+    sealed trait Assoc
+
+    val ops = Map(
+      (1, Set("*", "/")),
+      (2, Set("-", "+")),
+      (3, Set("=", "!=", ">", "<", ">=", "<=")),
+      (4, Set("&")),
+      (5, Set("|"))
+    )
+
+    def opsWithPrecedence(n: Int): Set[String] = ops.getOrElse(n, Set.empty)
+
+    def opWithPrecedence(n: Int): Parser[String] = {
+      val ops = opsWithPrecedence(n)
+      if (ops.size > 1) {
+        ops.map(literal).fold (literal(ops.head)) {
+          case (l1, l2) => l1 | l2
+        }
+      } else if (ops.size == 1) {
+        literal(ops.head)
+      } else {
+        failure(s"No Ops for Precedence $n")
+      }
     }
+
+    def folder(h: Exp, t: TigerParser.~[String, Exp]): CallExp = CallExp(t._1, Seq(h, t._2))
+
+    val maxPrecedence: Int = ops.maxBy(_._1)._1
+
     def negate = "-" ~> expr ^^ { e => CallExp("-", Seq(e)) }
+
     def notApp = "!" ~> expr ^^ { e => CallExp("!", Seq(e)) }
 
-    binApp | negate | notApp
+    def term: (Int => Parser[Exp]) = {
+      case 0 => callExp | lval | int | negate | notApp | "(" ~> expr <~ ")"
+      case n if n > 0 =>
+        val lowerTerm = term(n - 1)
+        lowerTerm ~ rep(opWithPrecedence(n) ~ lowerTerm) ^^ {
+          case h ~ ts if ts.nonEmpty => ts.foldLeft(h)(folder)
+          case h ~ _ => h
+        }
+    }
+
+    term(maxPrecedence)
   }
 
   def assignExp: Parser[Exp] = variableExp ~ ":=" ~ expr ^^ {
@@ -171,14 +207,9 @@ object TigerParser extends RegexParsers with ImplicitConversions {
     case fn ~ "(" ~ args ~ ")" => CallExp(fn, args)
   }
 
-  /*
-  def expr: Parser[Exp] = letExp | opExp
-    */
-
-  def expr: Parser[Exp] =
-    assignExp | callExp | int | str |
-      breakExp | arrayExp | seqExp | lval | ifExp |
-      whileExp | forExp | parenExp
+  def expr: Parser[Exp] = opExp | assignExp | callExp |
+    int | str | breakExp | arrayExp | seqExp | lval |
+    ifExp | whileExp | forExp | parenExp
 
   def parseString(s: String): Option[Exp] = {
     val input = new CharSequenceReader(s)
